@@ -1,6 +1,6 @@
 CC ?= gcc
 CFLAGS_common ?= -Wall -std=gnu99
-CFLAGS_orig = -O0
+CFLAGS_orig = -O0 -g
 CFLAGS_opt  = -O0 -g
 
 EXEC = phonebook_orig phonebook_opt phonebook_hash
@@ -42,6 +42,9 @@ cache-test: $(EXEC)
 	perf stat --repeat 100 \
 		-e cache-misses,cache-references,instructions,cycles \
 		./phonebook_opt
+	perf stat --repeat 100 \
+		-e cache-misses,cache-references,instructions,cycles \
+		./phonebook_hash
 
 output.txt: cache-test calculate
 	./calculate
@@ -55,4 +58,4 @@ calculate: calculate.c
 .PHONY: clean
 clean:
 	$(RM) $(EXEC) *.o perf.* \
-	      	calculate orig.txt opt.txt output.txt runtime.png
+		calculate orig.txt opt.txt output.txt runtime.png hash.txt

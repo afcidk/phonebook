@@ -3,11 +3,14 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include IMPL
 
 #ifdef OPT
 #define OUT_FILE "opt.txt"
+#elif defined HASH
+#define OUT_FILE "hash.txt"
 #else
 #define OUT_FILE "orig.txt"
 #endif
@@ -29,6 +32,7 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 int main(int argc, char *argv[])
 {
+    /* TODO: phonebook_orig will crash, possibility due to using too much memory */
     FILE *fp;
     int i = 0;
     char line[MAX_LAST_NAME_SIZE];
@@ -44,10 +48,17 @@ int main(int argc, char *argv[])
 
     /* build the entry */
     entry *pHead, *e;
+    entry hashTable[50000];       // entry point for phonebook_hash
     pHead = (entry *) malloc(sizeof(entry));
     printf("size of entry : %lu bytes\n", sizeof(entry));
     e = pHead;
     e->pNext = NULL;
+#if defined HASH
+    for (int i=0; i<50000; ++i) {
+        strncpy(hashTable[i].lastName, "", 16);
+        hashTable[i].lastEle = &hashTable[i];
+    }
+#endif
 
 #if defined(__GNUC__)
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
@@ -58,7 +69,8 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
-        e = append(line, e);
+        if (!strcmp(IMPL, "phonebook_hash.h"))  append(line, hashTable);
+        else e = append(line, e);
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -72,16 +84,23 @@ int main(int argc, char *argv[])
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
     e = pHead;
 
-    assert(findName(input, e) &&
-           "Did you implement findName() in " IMPL "?");
-    assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+    if (!strcmp(IMPL, "phonebook_hash.h")) {
+        assert(findName(input, hashTable) &&
+               "Did you implement findName() in " IMPL "?");
+        assert(0 == strcmp(findName(input, hashTable)->lastName, "zyxel"));
+    } else {
+        assert(findName(input, e) &&
+               "Did you implement findName() in " IMPL "?");
+        assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+    }
 
 #if defined(__GNUC__)
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
 #endif
     /* compute the execution time */
     clock_gettime(CLOCK_REALTIME, &start);
-    findName(input, e);
+    if (!strcmp(IMPL, "phonebook_hash.h")) findName(input, hashTable);
+    else findName(input, e);
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time2 = diff_in_second(start, end);
 
