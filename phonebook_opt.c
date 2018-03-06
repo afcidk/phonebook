@@ -4,10 +4,8 @@
 
 #include "phonebook_opt.h"
 
-/* TODO: FILL YOUR OWN IMPLEMENTATION HERE! */
 entry *findName(char lastName[], entry *pHead)
 {
-    /* TODO: implement */
     while (pHead != NULL) {
         if (strcasecmp(lastName, pHead->lastName) == 0)
             return pHead;
@@ -18,12 +16,10 @@ entry *findName(char lastName[], entry *pHead)
 
 entry *append(char lastName[], entry *e)
 {
-    /* TODO: implement */
     e->pNext = (entry *) malloc(sizeof(entry));
     e->pData = (phonebookData *) malloc(sizeof(phonebookData));
     e = e->pNext;
     strcpy(e->lastName, lastName);
-    e->pNext = NULL;
 
     return e;
 }

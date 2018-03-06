@@ -30,20 +30,15 @@ entry *append(char lastName[], entry *hashTable)
     return hashTable;
 }
 
-int32_t hashFunc(char lastName[])
+u_int32_t hashFunc(char lastName[])
 {
-    /* using Rabin-Karp hash function */
-    int32_t q = 40009;
-    int64_t hashValue = 0;
-    int32_t len = strlen(lastName);
-    int64_t p = 1;
+    /* using dbj2 hash function */
+    u_int32_t hash = 5381;
+    int32_t c;
 
-    for (int i=0, j=len-1; i<len; ++i, --j) {
-        hashValue += (lastName[j]*p) % q;
-        p *= 17;
-        p %= q;
-        hashValue %= q;
-    }
-    return hashValue;
+    while (c = *lastName++)
+        hash = ((hash << 5) + hash) + c;
+
+    return hash%40009;
 }
 

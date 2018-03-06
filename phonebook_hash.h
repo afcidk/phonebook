@@ -30,6 +30,6 @@ typedef struct __PHONE_BOOK_ENTRY {
 
 entry *findName(char lastName[], entry *hashTable);
 entry *append(char lastName[], entry *hashTable);
-int32_t hashFunc(char lastName[]);
+u_int32_t hashFunc(char lastName[]);
 
 #endif

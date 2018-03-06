@@ -32,7 +32,6 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 int main(int argc, char *argv[])
 {
-    /* TODO: phonebook_orig will crash, possibility due to using too much memory */
     FILE *fp;
     int i = 0;
     char line[MAX_LAST_NAME_SIZE];
