@@ -55,7 +55,6 @@ int main(int argc, char *argv[])
 #if defined HASH
     for (int i=0; i<50000; ++i) {
         strncpy(hashTable[i].lastName, "", 16);
-        hashTable[i].lastEle = &hashTable[i];
     }
 #endif
 

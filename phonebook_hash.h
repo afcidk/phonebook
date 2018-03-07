@@ -24,7 +24,6 @@ typedef struct __PHONE_BOOK_ENTRY {
 
     // if collided, point to next lastName
     struct __PHONE_BOOK_ENTRY *pColNext;
-    struct __PHONE_BOOK_ENTRY *lastEle;
 } entry;
 
 
