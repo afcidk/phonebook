@@ -34,7 +34,7 @@ u_int32_t hashFunc(char lastName[])
     u_int32_t hash = 5381;
     int32_t c;
 
-    while (c = *lastName++)
+    while ((c = *lastName++))
         hash = ((hash << 5) + hash) + c;
 
     return hash%40009;

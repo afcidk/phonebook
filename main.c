@@ -11,6 +11,8 @@
 #define OUT_FILE "opt.txt"
 #elif defined HASH
 #define OUT_FILE "hash.txt"
+#elif defined TRIE
+#define OUT_FILE "trie.txt"
 #else
 #define OUT_FILE "orig.txt"
 #endif
@@ -46,20 +48,29 @@ int main(int argc, char *argv[])
     }
 
     /* build the entry */
-    entry *pHead, *e;
+#ifdef HASH
     entry hashTable[50000];       // entry point for phonebook_hash
+#else
+    entry *pHead, *e;
     pHead = (entry *) malloc(sizeof(entry));
-    printf("size of entry : %lu bytes\n", sizeof(entry));
     e = pHead;
-    e->pNext = NULL;
+#endif
+    printf("size of entry : %lu bytes\n", sizeof(entry));
+
 #if defined HASH
     for (int i=0; i<50000; ++i) {
-        strncpy(hashTable[i].lastName, "", 16);
+        strncpy(hashTable[i].lastName, "", 16); //initialize lastName in hashTable
     }
+#elif !defined TRIE
+    e->pNext = NULL;
 #endif
 
 #if defined(__GNUC__)
+#if defined HASH
+    __builtin___clear_cache((char *) hashTable, (char *) hashTable+ sizeof(entry));
+#else
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
+#endif
 #endif
     clock_gettime(CLOCK_REALTIME, &start);
     while (fgets(line, sizeof(line), fp)) {
@@ -67,8 +78,13 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
-        if (!strcmp(IMPL, "phonebook_hash.h"))  append(line, hashTable);
-        else e = append(line, e);
+#if defined HASH
+        append(line, hashTable);
+#elif defined TRIE
+        append(line, pHead);
+#else
+        e = append(line, e);
+#endif
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -76,29 +92,36 @@ int main(int argc, char *argv[])
     /* close file as soon as possible */
     fclose(fp);
 
-    e = pHead;
 
     /* the givn last name to find */
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
-    e = pHead;
 
-    if (!strcmp(IMPL, "phonebook_hash.h")) {
-        assert(findName(input, hashTable) &&
-               "Did you implement findName() in " IMPL "?");
-        assert(0 == strcmp(findName(input, hashTable)->lastName, "zyxel"));
-    } else {
-        assert(findName(input, e) &&
-               "Did you implement findName() in " IMPL "?");
-        assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
-    }
+#if defined HASH
+    assert(findName(input, hashTable) &&
+           "Did you implement findName() in " IMPL "?");
+    assert(0 == strcmp(findName(input, hashTable)->lastName, "zyxel"));
+#elif !defined TRIE
+    e = pHead;
+    assert(findName(input, e) &&
+           "Did you implement findName() in " IMPL "?");
+    assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+#endif
 
 #if defined(__GNUC__)
+#if defined HASH
+    __builtin___clear_cache((char *) hashTable, (char *) hashTable+ sizeof(entry));
+#else
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
+#endif
 #endif
     /* compute the execution time */
     clock_gettime(CLOCK_REALTIME, &start);
-    if (!strcmp(IMPL, "phonebook_hash.h")) findName(input, hashTable);
-    else findName(input, e);
+#if defined HASH
+    for (int i=0; i<10000; ++i) findName(input, hashTable);
+#else
+    for (int i=0; i<10000; ++i) findName(input, e);
+#endif
+
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time2 = diff_in_second(start, end);
 
@@ -109,8 +132,10 @@ int main(int argc, char *argv[])
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
 
-    if (pHead->pNext) free(pHead->pNext);
+#if !defined HASH
     free(pHead);
+#endif
+
 
     return 0;
 }
